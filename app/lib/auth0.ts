@@ -1,12 +1,13 @@
 import { initAuth0 } from '@auth0/nextjs-auth0';
 import {NextApiRequest} from 'next'
 import {headers} from "next/headers";
+import {NextRequest} from "next/server";
 
 const getHost = () => {
     return headers().get('host');
 };
 
-export const initializeAuth0 = (req : NextApiRequest): ReturnType<typeof initAuth0> => {
+export const initializeAuth0 = (req : NextRequest): ReturnType<typeof initAuth0> => {
     const host = getHost()
     const hostParts = host?.split('.')
     return initAuth0({

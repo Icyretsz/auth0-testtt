@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import {headers} from 'next/headers';
 import { initializeAuth0 } from '@/app/lib/auth0';
+import {NextRequest, NextResponse} from "next/server";
 
 
 const getHost = () => {
@@ -23,7 +24,7 @@ const getOrg = (host: string) => {
     }
 };
 
-export const GET = (req: NextApiRequest, res: NextApiResponse) => {
+export const GET = (req: NextRequest, res: NextResponse) => {
     const auth0 = initializeAuth0(req);
     return auth0.handleAuth({
         async login(req: NextApiRequest, res: NextApiResponse) {
