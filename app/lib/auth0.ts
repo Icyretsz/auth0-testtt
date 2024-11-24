@@ -1,4 +1,4 @@
-import { initAuth0 } from '@auth0/nextjs-auth0';
+import {initAuth0} from '@auth0/nextjs-auth0';
 import {NextApiRequest} from 'next'
 import {headers} from "next/headers";
 import {NextRequest} from "next/server";
@@ -7,9 +7,24 @@ const getHost = () => {
     return headers().get('host');
 };
 
-export const initializeAuth0 = (req : NextRequest): ReturnType<typeof initAuth0> => {
+const hasSubdomain = (host: string) => {
+    if (host.includes('localhost')) {
+        return host.split('.').length > 1;
+    } else {
+        return host.split('.').length > 2;
+    }
+};
+
+const getOrg = (host: string) => {
+    if (hasSubdomain(host)) {
+        return host.split('.')[0];
+    } else {
+        return undefined;
+    }
+};
+
+export const initializeAuth0 = (req: NextRequest): ReturnType<typeof initAuth0> => {
     const host = getHost()
-    const hostParts = host?.split('.')
     return initAuth0({
         baseURL: `https://${host}`,
         secret: process.env.AUTH0_SECRET,
@@ -19,14 +34,15 @@ export const initializeAuth0 = (req : NextRequest): ReturnType<typeof initAuth0>
         transactionCookie: {
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             secure: process.env.NODE_ENV === 'production',
-            domain: process.env.NODE_ENV === 'production' && hostParts ? `.${hostParts[1]}.${hostParts[2]}` : undefined,
+            domain: process.env.NODE_ENV === 'production' ? `.aicrm.club` : undefined,
         },
         session: {
             cookie: {
                 sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
                 secure: process.env.NODE_ENV === 'production',
-                domain: process.env.NODE_ENV === 'production' && hostParts ? `.${hostParts[1]}.${hostParts[2]}` : undefined,
+                domain: process.env.NODE_ENV === 'production' ? `.aicrm.club` : undefined,
             }
         }
     })
+
 }
