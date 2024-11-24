@@ -11,7 +11,7 @@ export const initializeAuth0 = (req : NextRequest): ReturnType<typeof initAuth0>
     const host = getHost()
     const hostParts = host?.split('.')
     return initAuth0({
-        baseURL: `http://${host}`,
+        baseURL: `https://${host}`,
         secret: process.env.AUTH0_SECRET,
         issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
         clientID: process.env.AUTH0_CLIENT_ID,
