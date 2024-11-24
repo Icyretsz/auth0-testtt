@@ -35,7 +35,7 @@ export const GET = (req: NextRequest, res: NextResponse) => {
                 if (orgName) {
                     return await auth0.handleLogin(req, res, {
                         authorizationParams: { organization: `${orgName}` },
-                        returnTo: `https://${hostParts[1]}.${hostParts[2]}/${orgName}`,
+                        returnTo: `https://aicrm.club/${orgName}`,
                     });
                 }
                 return await auth0.handleLogin(req, res);
