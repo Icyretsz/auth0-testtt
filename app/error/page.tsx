@@ -1,13 +1,13 @@
 import React from 'react';
-import {NextResponse} from "next/server";
-import {useRouter} from "next/router";
+
 import Link from "next/link";
+import {useSearchParams} from "next/navigation";
 
 
 const Page = () => {
-    const router = useRouter();
-
-    const { message } = router.query;
+    const searchParams = useSearchParams();
+    const message = searchParams.get('message') || 'An unexpected error occurred. Please try again.';
+    console.log('message:',message);
 
     if (message && message.includes('access-denied')) {
         return <>
