@@ -1,11 +1,11 @@
-
 import User from './features/auth/components/user';
 
-export default async function Index() {
+export default function Index() {
+
 
   return <>
-    <a href='api/auth/login'>Login</a>
-    <a href='api/auth/logout'>Logout</a>
+    <h1 style={{fontSize : 50}}>This is main page</h1>
+    <a href='/api/auth/login'>Login</a>
     <User></User>
   </>
 }
