@@ -49,21 +49,36 @@ export const GET = (req: NextRequest, res: NextResponse) => {
                     return await auth0.handleLogin(req, res);
                 }
             },
-            async callback(req: NextRequest, ctx: AppRouteHandlerFnContext) {
-                const res = (await auth0.handleCallback(req, ctx, {afterCallback})) as NextResponse;
+        // @ts-ignore
+        async callback(req: NextRequest, ctx: AppRouteHandlerFnContext) {
+            try {
+                // Attempt to handle the callback
+                const res = await auth0.handleCallback(req, ctx, { afterCallback });
+                // @ts-ignore
                 const session = await auth0.getSession(req, res);
+
                 const host = getHost();
                 if (host) {
                     const orgName = getOrg(host);
                     if (session && orgName) {
                         return NextResponse.redirect(`https://${host}/${orgName}`, res);
-                    } else {
-                        return NextResponse.redirect(`https://${host}`, res);
+                    } else if (session && session.user.org_name) {
+                        return NextResponse.redirect(`https://${host}/${session.user.org_name}`, res);
                     }
-                } else {
-                    return auth0.handleCallback(req, ctx, {afterCallback});
                 }
-            },
+                return auth0.handleCallback();
+            } catch (error) {
+                // Custom error handling
+                if (error instanceof Error) {
+                    if (error.message.includes('access_denied')) {
+                        const host = getHost();
+                        return NextResponse.redirect(`https://${host}/error?message=${encodeURIComponent(error.message)}`);
+                    }
+                }
+                // Fallback: rethrow the error if not handled
+                throw error;
+            }
+        },
         },
     )(req, res);
 };
