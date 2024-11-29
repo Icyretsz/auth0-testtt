@@ -9,12 +9,12 @@ interface UserProfileWithOrgName extends UserProfile {
 const Page = () => {
 
     const {user} = useUser()
-    const userWithOrg = user as UserProfileWithOrgName
+    const userWithOrg = user as UserProfileWithOrgName | undefined
 
     return (
         <div>
-            <h1 style={{fontSize: 50}}>This is {userWithOrg.org_name} page</h1>
-            Welcome {user?.name}
+            <h1 style={{fontSize: 50}}>This is {userWithOrg?.org_name} page</h1>
+            Welcome {userWithOrg?.name}
             <div><a href='/api/auth/logout'>Logout</a></div>
         </div>
     );
