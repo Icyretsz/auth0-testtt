@@ -49,6 +49,7 @@ export const GET = (req: NextRequest, res: NextResponse) => {
                 return await auth0.handleLogin(req, res);
             }
         },
+        // @ts-ignore
         async callback(req: NextRequest, ctx: AppRouteHandlerFnContext) {
             const res = (await auth0.handleCallback(req, ctx, {afterCallback})) as NextResponse;
             const session = await auth0.getSession(req, res);
