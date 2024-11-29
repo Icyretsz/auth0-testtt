@@ -29,7 +29,11 @@ const getOrg = (host: string) => {
 };
 
 const afterCallback: AfterCallbackAppRoute = (req: NextRequest, session: Session) => {
-    if (session.user) {
+    if (session.user.org_name_initial) {
+        const host = getHost();
+        NextResponse.redirect(process.env.NODE_ENV === 'production' ? `https://${host}/${session.user.org_name_initial}`
+            : `http://${host}/${session.user.org_name_initial}`);
+    } else {
         return session;
     }
 };
@@ -43,50 +47,40 @@ export const GET = (req: NextRequest, res: NextResponse) => {
                 const orgName = getOrg(host);
                 if (orgName) {
                     return await auth0.handleLogin(req, res, {
-                        authorizationParams: {organization: `${orgName}`},
+                        authorizationParams: { organization: `${orgName}` },
                     });
                 }
                 return await auth0.handleLogin(req, res);
             }
         },
-        // @ts-ignore
         async callback(req: NextRequest, ctx: AppRouteHandlerFnContext) {
-            const res = (await auth0.handleCallback(req, ctx, {afterCallback})) as NextResponse;
+            const res = (await auth0.handleCallback(req, ctx, { afterCallback })) as NextResponse;
             const session = await auth0.getSession(req, res);
             const host = getHost();
             if (host) {
                 const orgName = getOrg(host);
-                if (session) {
-                    if (orgName) {
-                        return NextResponse.redirect(
-                            process.env.NODE_ENV === 'production'
-                                ? `https://${host}/${orgName}`
-                                : `http://${host}/${orgName}`,
-                            res
-                        );
-                    } else if (session.user.org_name_initial) {
-                        console.log('initial')
-                        return NextResponse.redirect(
-                            process.env.NODE_ENV === 'production'
-                                ? `https://${host}/${session.user.org_name_initial}`
-                                : `http://${host}/${session.user.org_name_initial}`
-                        );
-                    } else if (session.user.org_name) {
-                        console.log('no initial')
-                        return NextResponse.redirect(
-                            process.env.NODE_ENV === 'production'
-                                ? `https://${host}/${session.user.org_name}`
-                                : `http://${host}/${session.user.org_namel}`
-                        );
-                    } else {
-                        return NextResponse.redirect(
-                            process.env.NODE_ENV === 'production' ? `https://${host}` : `http://${host}`,
-                            res
-                        );
-                    }
+                if (session && orgName) {
+                    return NextResponse.redirect(
+                        process.env.NODE_ENV === 'production'
+                            ? `https://${host}/${orgName}`
+                            : `http://${host}/${orgName}`,
+                        res
+                    );
+                } else if (session && session.user.org_name) {
+                    return NextResponse.redirect(
+                        process.env.NODE_ENV === 'production'
+                            ? `https://${host}/${session.user.org_name}`
+                            : `http://${host}/${session.user.org_name}`,
+                        res
+                    );
+                } else {
+                    return NextResponse.redirect(
+                        process.env.NODE_ENV === 'production' ? `https://${host}` : `http://${host}`,
+                        res
+                    );
                 }
             } else {
-                return auth0.handleCallback(req, ctx, {afterCallback});
+                return auth0.handleCallback(req, ctx, { afterCallback });
             }
         },
     })(req, res);
