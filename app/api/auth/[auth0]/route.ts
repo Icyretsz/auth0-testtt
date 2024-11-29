@@ -37,49 +37,56 @@ const afterCallback: AfterCallbackAppRoute = (req: NextRequest, session: Session
 export const GET = (req: NextRequest, res: NextResponse) => {
     const auth0 = initializeAuth0(req);
     return auth0.handleAuth({
-            async login(req: NextApiRequest, res: NextApiResponse) {
-                const host = getHost();
-                if (host) {
-                    const orgName = getOrg(host);
-                    if (orgName) {
-                        return await auth0.handleLogin(req, res, {
-                            authorizationParams: {organization: `${orgName}`},
-                        });
-                    }
-                    return await auth0.handleLogin(req, res);
+        async login(req: NextApiRequest, res: NextApiResponse) {
+            const host = getHost();
+            if (host) {
+                const orgName = getOrg(host);
+                if (orgName) {
+                    return await auth0.handleLogin(req, res, {
+                        authorizationParams: {organization: `${orgName}`},
+                    });
                 }
-            },
-        // @ts-ignore
-        async callback(req: NextRequest, ctx: AppRouteHandlerFnContext) {
-            try {
-                // Attempt to handle the callback
-                const res = await auth0.handleCallback(req, ctx, { afterCallback });
-                // @ts-ignore
-                const session = await auth0.getSession(req, res);
-
-                const host = getHost();
-                if (host) {
-                    const orgName = getOrg(host);
-                    if (session && orgName) {
-                        return NextResponse.redirect(`https://${host}/${orgName}`, res);
-                    } else if (session && session.user.org_name) {
-                        return NextResponse.redirect(`https://${host}/${session.user.org_name}`, res);
-                    }
-                }
-                return auth0.handleCallback();
-            } catch (error) {
-                // Custom error handling
-                if (error instanceof Error) {
-                    if (error.message.includes('access_denied')) {
-                        const host = getHost();
-                        return NextResponse.redirect(`https://${host}/error?message=${encodeURIComponent(error.message)}`);
-                    }
-                }
-                // Fallback: rethrow the error if not handled
-                throw error;
+                return await auth0.handleLogin(req, res);
             }
         },
+        async callback(req: NextRequest, ctx: AppRouteHandlerFnContext) {
+            const res = (await auth0.handleCallback(req, ctx, {afterCallback})) as NextResponse;
+            const session = await auth0.getSession(req, res);
+            const host = getHost();
+            if (host) {
+                const orgName = getOrg(host);
+                if (session) {
+                    if (orgName) {
+                        return NextResponse.redirect(
+                            process.env.NODE_ENV === 'production'
+                                ? `https://${host}/${orgName}`
+                                : `http://${host}/${orgName}`,
+                            res
+                        );
+                    } else if (session.user.org_name_initial) {
+                        console.log('initial')
+                        return NextResponse.redirect(
+                            process.env.NODE_ENV === 'production'
+                                ? `https://${host}/${session.user.org_name_initial}`
+                                : `http://${host}/${session.user.org_name_initial}`
+                        );
+                    } else if (session.user.org_name) {
+                        console.log('no initial')
+                        return NextResponse.redirect(
+                            process.env.NODE_ENV === 'production'
+                                ? `https://${host}/${session.user.org_name}`
+                                : `http://${host}/${session.user.org_namel}`
+                        );
+                    } else {
+                        return NextResponse.redirect(
+                            process.env.NODE_ENV === 'production' ? `https://${host}` : `http://${host}`,
+                            res
+                        );
+                    }
+                }
+            } else {
+                return auth0.handleCallback(req, ctx, {afterCallback});
+            }
         },
-    )(req, res);
+    })(req, res);
 };
-
